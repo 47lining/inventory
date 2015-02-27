@@ -335,7 +335,13 @@ class Ec2Inventory(object):
         if instance.subnet_id:
             # 47Lining
             if self.vpc_destination_variable == "ec2_tag_Name" and "Name" in instance.tags:
-                dest = instance.tags["Name"]
+                # Use Name for ease of use, if it is present and can be expected to be unique.
+                # If instance is part of an Autoscaling Group, augment Name with private IP
+                # to ensure uniqueness.
+                if "aws:autoscaling:groupName" in instance.tags:
+                    dest = instance.tags["Name"] + "-" + getattr(instance, "private_ip_address")
+                else:
+                    dest = instance.tags["Name"]                    
             else:
                 dest = getattr(instance, self.vpc_destination_variable)
         else:
