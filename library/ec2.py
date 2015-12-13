@@ -340,6 +340,12 @@ class Ec2Inventory(object):
                 # to ensure uniqueness.
                 if "aws:autoscaling:groupName" in instance.tags:
                     dest = instance.tags["Name"] + "-" + getattr(instance, "private_ip_address")
+                # If this is a windows instance use its public ip.
+                # Windows instances are noted by substring "windows" in the NucleatorGroup tag.
+                # There is currently no support for using a winrm connection via a proxy, so
+                # windows instances must reside in the public subnet and be accessed via their public ip
+                elif "NucleatorGroup" in instance.tags and "windows" in instance.tags["NucleatorGroup"]:
+                    dest = instance.ip_address
                 else:
                     dest = instance.tags["Name"]                    
             else:
